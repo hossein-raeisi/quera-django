@@ -4,14 +4,15 @@ from typing import Any
 from rest_framework import generics, mixins, serializers, status, viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action, api_view
-from rest_framework.exceptions import AuthenticationFailed, ValidationError
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.throttling import SimpleRateThrottle
 from rest_framework.views import APIView
 
-from Quera.drf.models import MyModel, User, UserToken
+from Quera.drf.models import User
+from .services import HasHighAuthorizationLevel, HasRightName, UserTokenAuthentication
 
 
 # Views
@@ -99,6 +100,31 @@ class UserSerializer(serializers.ModelSerializer):
 
 # authentication and authorization
 
+class UserAPIProtected(APIView):
+    authentication_classes = [UserTokenAuthentication]
+    # https://www.django-rest-framework.org/api-guide/authentication/
+    permission_classes = [HasHighAuthorizationLevel & HasRightName]
+
+    # https://www.django-rest-framework.org/api-guide/permissions/
+
+    # throttle_classes = [SimpleRateThrottle, ]  # https://www.django-rest-framework.org/api-guide/throttling/
+
+    def get(self, request: Request) -> Response:
+        return Response(request.user.name)
+
+
+class CleanerUserAPIProtected(APIView):
+    def get_authenticators(self):
+        return super().get_authenticators() + [UserTokenAuthentication]
+
+    def get_permissions(self):
+        return super().get_permissions() + [HasHighAuthorizationLevel & HasRightName]
+
+    # throttle_classes = [SimpleRateThrottle, ]  # https://www.django-rest-framework.org/api-guide/throttling/
+
+    def get(self, request: Request) -> Response:
+        return Response(request.user.name)
+
 
 class CleanerProtectedAPIView(APIView):
 
@@ -122,7 +148,7 @@ class CleanerProtectedAPIView(APIView):
 # combine the logic for a set of related views in a single class
 
 class MyViewSet(viewsets.ModelViewSet):
-    queryset = MyModel.objects.all()
+    # queryset = MyModel.objects.all()
 
     @action(detail=True, methods=['GET'])
     def my_action(self, request: Request, pk: Any = None) -> Response:
@@ -137,7 +163,8 @@ class MyViewSet(viewsets.ModelViewSet):
 class MyGenericViewSet(generics.ListAPIView, mixins.UpdateModelMixin):
 
     def get_queryset(self):
-        return MyModel.objects.all()
+        pass
+        # return MyModel.objects.all()
 
 
 class MyMixin:

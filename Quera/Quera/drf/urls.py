@@ -1,13 +1,14 @@
 from django.urls import path
 from rest_framework.routers import DefaultRouter
 
-from Quera.drf.views import MyAPIView, MyViewSet, UserAPI, UserAPIProtected, my_api_view
+from Quera.drf.views import MyAPIView, MyViewSet, SimpleAPI, UserAPI, UserAPIProtected, my_api_view
 
 urlpatterns = [
     path('my-api-view/', MyAPIView.as_view(), name='my-api-view'),
     path('my-api-view-2/', my_api_view, name='my-api-view-2'),
     path('user/', UserAPI.as_view(), name='user'),
     path('user-protected/', UserAPIProtected.as_view(), name='user-protected'),
+    path('sample/', SimpleAPI.as_view(), name='sample'),
 ]
 
 router = DefaultRouter()
