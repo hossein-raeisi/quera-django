@@ -126,6 +126,12 @@ class CleanerUserAPIProtected(APIView):
         return Response(request.user.name)
 
 
+class SimpleAPI(APIView):
+
+    def get(self, request: Request) -> Response:
+        return Response('accepted')
+
+
 class CleanerProtectedAPIView(APIView):
 
     def get_authenticators(self):
