@@ -1,0 +1,4 @@
+[submodule "sentry"]
+	path = sentry
+	url = https://github.com/getsentry/sentry.git
+	branch = master
