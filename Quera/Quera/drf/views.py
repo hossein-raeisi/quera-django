@@ -207,3 +207,45 @@ class BookCachedAPI(APIView):
         serializer = BookSerializer(Book.objects.all(), many=True)
         return Response(serializer.data)
 
+
+# [a1, a2, a4, a3, a5, a6, a7] -> [a1, a2, a4],        [a3, a5, a6],         [a7]  limit offset
+#                                 offset:0 limit:3      offset:3, limit:3   offset:6 limit:3
+# [a1, a2, a4, a3, a5, a6, a7] -> [a1, a2, a3],        [a4, a5, a6]         [a7]
+#  order by id                    cursor: 0, limit:3   cursor: 3, limit:3    cursor:6 limit:3
+
+#                     limit-offset       cursor-limit
+# a1 a2 a3 a4      -> a2 a3 a4           a2 a3 a4
+# a0, a1, a2 a3 a4 -> a1 a2 a3           a2 a3 a4
+#
+#
+
+# pagination
+
+class MyCursorPaginator(CursorPagination):
+    page_size = 2
+    ordering = '-id'
+
+
+class MyLimitOffsetPaginator(LimitOffsetPagination):
+    max_limit = 2
+
+
+# https://www.django-rest-framework.org/api-guide/pagination/#pagenumberpagination
+class MyPageNumberPaginator(PageNumberPagination):
+    # page_size = 2
+    page_size_query_param = 'page_size'
+    max_page_size = 10
+    pass
+
+
+class BookPaginatedReadOnlyModelViewSet(viewsets.ReadOnlyModelViewSet):
+
+    def get_queryset(self):
+        return Book.objects.all()
+
+    def get_serializer_class(self):
+        return BookSerializer
+
+    pagination_class = MyPageNumberPaginator
+
+# a note on price of .count in pagination
