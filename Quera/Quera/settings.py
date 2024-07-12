@@ -17,6 +17,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'Quera.drf.apps.DrfConfig',
     'rest_framework',
+    'django_extensions',
 ]
 
 MIDDLEWARE = [
@@ -92,5 +93,5 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_THROTTLE_RATES': {
         'anon': '5/day',
-    }
+    },
 }

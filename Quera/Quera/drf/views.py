@@ -1,21 +1,23 @@
-import dataclasses
-from typing import Any
+from http import HTTPMethod
 
-from rest_framework import generics, mixins, serializers, status, viewsets
+from rest_framework import generics, status, viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action, api_view
-from rest_framework.exceptions import ValidationError
+from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.throttling import SimpleRateThrottle
 from rest_framework.views import APIView
 
-from Quera.drf.models import User
+from .models import Book
+from .serializers import BookSerializer, RestrictedBookSerializer, UserSerializer, UsersSerializer
 from .services import HasHighAuthorizationLevel, HasRightName, UserTokenAuthentication
 
 
 # Views
+
+# https://www.django-rest-framework.org/api-guide/views/#dispatch-methods
 
 class MyAPIView(APIView):
     def get(self, request: Request) -> Response:
@@ -49,57 +51,7 @@ class UserAPI(APIView):
         return Response(user.name)
 
 
-# https://www.django-rest-framework.org/api-guide/views/#dispatch-methods
-
-
-# serialization and validation
-# https://www.django-rest-framework.org/api-guide/serializers/
-# https://www.django-rest-framework.org/api-guide/validators/
-
-
-@dataclasses.dataclass
-class AddressData:
-    city: str
-
-
-@dataclasses.dataclass
-class UserData:
-    names: list[str]
-    address: AddressData
-
-
-class Address(serializers.Serializer):
-    city = serializers.CharField(max_length=20)
-
-
-class UsersSerializer(serializers.Serializer):
-    names = serializers.ListSerializer(child=serializers.CharField(max_length=20), max_length=2, min_length=1)
-    address = Address()
-
-    def create(self, validated_data: dict[Any, Any]) -> Any:
-        return UserData(
-            names=validated_data.get('names'),
-            address=AddressData(city=validated_data['address']['city']),
-        )
-
-    def update(self, instance: Any, validated_data: dict[Any, Any]) -> Any:
-        return self.save(**validated_data | dataclasses.asdict(instance))  # todo
-
-    def validate(self, data: dict) -> dict:
-        if len(data['names']) > 1 and data['address']['city'] == 'tehran':
-            raise ValidationError({'error': ['bad number and city']})
-
-        return data
-
-
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = '__all__'
-
-
 # authentication and authorization
-
 class UserAPIProtected(APIView):
     authentication_classes = [UserTokenAuthentication]
     # https://www.django-rest-framework.org/api-guide/authentication/
@@ -147,31 +99,86 @@ class CleanerProtectedAPIView(APIView):
         pass  # todo
 
 
-# middlewares
+# Generic Views
+# https://www.django-rest-framework.org/api-guide/generic-views/
+
+class BookGenericView(generics.ListCreateAPIView):
+    def get_authenticators(self):
+        return [UserTokenAuthentication]
+
+    def get_permissions(self):
+        return super().get_permissions() + [IsAuthenticated]
+
+    def get_queryset(self):
+        if ...:
+            return Book.objects.all()
+        return Book.objects.filter(...)
+
+    def get_serializer_class(self):
+        if self.request.user.authorization_level >= 3:
+            return BookSerializer
+        return RestrictedBookSerializer
+
+    # we can override the default implementations
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)  # todo
+
+
+class BookGenericRetrieve(generics.RetrieveAPIView):
+    def get_queryset(self):
+        return Book.objects.all()  # todo : more advanced logic
+
+    def get_serializer_class(self):
+        return BookSerializer  # todo: more advanced logic
+
+
+# we can implement our own mixins
+class MyMixin:
+    pass  # todo
+
 
 # ViewSets
 # https://www.django-rest-framework.org/api-guide/viewsets/
 # combine the logic for a set of related views in a single class
 
-class MyViewSet(viewsets.ModelViewSet):
-    # queryset = MyModel.objects.all()
+class BookViewSet(viewsets.ViewSet):
+    queryset = Book.objects.all()
 
-    @action(detail=True, methods=['GET'])
-    def my_action(self, request: Request, pk: Any = None) -> Response:
-        pass  # todo
+    def list(self, request: Request) -> Response:
+        serializer = BookSerializer(self.queryset, many=True)
+        return Response(serializer.data)
 
-    # todo: reversing
+    def retrieve(self, request: Request, pk) -> Response:
+        book = get_object_or_404(self.queryset, pk=pk)
+        serializer = BookSerializer(book)
+        return Response(serializer.data)
+
+    # custom actions
+    @action(detail=False, methods=[HTTPMethod.GET], url_name='detailed-action')
+    def count(self, request: Request) -> Response:
+        return Response({'objects_count': self.queryset.count()})
+
+    @action(detail=True, methods=['POST'])
+    def general_action(self, request: Request, pk: int = None) -> Response:
+        book = get_object_or_404(self.queryset, pk=pk)
+        author_other_books = self.queryset.filter(author=book.author)
+        serializer = BookSerializer(author_other_books, many=True)
+        return Response(serializer.data)
 
 
-# Generic Views
-# https://www.django-rest-framework.org/api-guide/generic-views/
-
-class MyGenericViewSet(generics.ListAPIView, mixins.UpdateModelMixin):
+class BookModelViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
-        pass
-        # return MyModel.objects.all()
+        return Book.objects.all()
+
+    def get_serializer_class(self):
+        return BookSerializer
 
 
-class MyMixin:
-    pass  # todo
+class BookReadOnlyModelViewSet(viewsets.ReadOnlyModelViewSet):
+
+    def get_queryset(self):
+        return Book.objects.all()
+
+    def get_serializer_class(self):
+        return BookSerializer

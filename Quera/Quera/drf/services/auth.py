@@ -6,9 +6,6 @@ from Quera.drf.models import User, UserToken
 
 
 class SimpleAuthentication(BaseAuthentication):
-    """
-    All authentication classes should extend BaseAuthentication.
-    """
 
     def authenticate(self, request):
         auth = get_authorization_header(request).split()
@@ -21,9 +18,6 @@ class SimpleAuthentication(BaseAuthentication):
 
 
 class SimpleAuthentication2(BaseAuthentication):
-    """
-    All authentication classes should extend BaseAuthentication.
-    """
 
     def authenticate(self, request):
         auth = get_authorization_header(request).split()
