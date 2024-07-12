@@ -2,7 +2,7 @@ from django.urls import path
 from rest_framework.routers import DefaultRouter
 
 from Quera.drf.views import (
-    BookCachedPaginated, BookGenericRetrieve, BookGenericView, BookModelViewSet, BookPaginatedReadOnlyModelViewSet,
+    BookGenericRetrieve, BookGenericView, BookModelViewSet, BookPaginatedReadOnlyModelViewSet,
     BookViewSet, MyAPIView,
     SimpleAPI, UserAPI,
     UserAPIProtected, my_api_view
@@ -24,4 +24,6 @@ router = DefaultRouter()
 router.register(r'books', BookViewSet, basename='books')
 router.register(r'books-model', BookModelViewSet, basename='books-model')
 router.register(r'books-paginated', BookPaginatedReadOnlyModelViewSet, basename='books-paginated')
+# router.register(r'books-cached', BookCachedPaginated, basename='books-cached')
 urlpatterns += router.urls  # or alternatively path('', include(router.urls))
+

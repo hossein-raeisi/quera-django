@@ -1,9 +1,12 @@
 from http import HTTPMethod
 
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from rest_framework import generics, status, viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action, api_view
 from rest_framework.generics import get_object_or_404
+from rest_framework.pagination import CursorPagination, LimitOffsetPagination, PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -182,3 +185,7 @@ class BookReadOnlyModelViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_serializer_class(self):
         return BookSerializer
+
+
+# CORS
+# https://github.com/adamchainz/django-cors-headers

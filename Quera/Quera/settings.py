@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from corsheaders.defaults import default_headers, default_methods
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-uq6j395h^douhaa48*477pxe(39h61ie0^sn9=_#569dgj82r0'
@@ -7,6 +9,20 @@ SECRET_KEY = 'django-insecure-uq6j395h^douhaa48*477pxe(39h61ie0^sn9=_#569dgj82r0
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
+
+CORS_ALLOWED_ORIGINS = [
+    "https://google.com",
+]
+
+CORS_ALLOW_METHODS = [
+    *default_methods,
+    "GET",
+]
+
+CORS_ALLOW_HEADERS = (
+    *default_headers,
+    "my-custom-header",
+)
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -18,11 +34,13 @@ INSTALLED_APPS = [
     'Quera.drf.apps.DrfConfig',
     'rest_framework',
     'django_extensions',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
