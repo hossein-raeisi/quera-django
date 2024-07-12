@@ -1,7 +1,9 @@
 from http import HTTPMethod
+from time import sleep
 
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
+from django.views.decorators.vary import vary_on_headers
 from rest_framework import generics, status, viewsets
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action, api_view
@@ -189,3 +191,19 @@ class BookReadOnlyModelViewSet(viewsets.ReadOnlyModelViewSet):
 
 # CORS
 # https://github.com/adamchainz/django-cors-headers
+
+
+# caching in views
+# https://www.django-rest-framework.org/api-guide/caching/
+
+class BookCachedAPI(APIView):
+
+    # only on GET and HEAD
+    @method_decorator(cache_page(timeout=60 * 5))
+    # vary on different things
+    @method_decorator(vary_on_headers('Authorization'))
+    def get(self, request: Request) -> Response:
+        sleep(5)
+        serializer = BookSerializer(Book.objects.all(), many=True)
+        return Response(serializer.data)
+
