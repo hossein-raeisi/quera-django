@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'Quera.drf.apps.DrfConfig',
+    'Quera.async_app.apps.AsyncAppConfig',
     'rest_framework',
     'django_extensions',
     'corsheaders',

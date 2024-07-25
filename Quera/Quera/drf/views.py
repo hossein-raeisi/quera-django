@@ -43,7 +43,7 @@ class MyAPIView(APIView):
 @api_view(['GET'])
 def my_api_view(request: Request) -> Response:
     if request.method == 'GET':
-        ...
+        return Response('Hi')
     return Response('hello')
 
 
