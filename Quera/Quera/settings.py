@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'Quera.drf.apps.DrfConfig',
     'Quera.async_app.apps.AsyncAppConfig',
+    'Quera.celery_app.apps.CeleryAppConfig',
     'rest_framework',
     'django_extensions',
     'corsheaders',
@@ -114,3 +115,7 @@ REST_FRAMEWORK = {
         'anon': '5/day',
     },
 }
+
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
